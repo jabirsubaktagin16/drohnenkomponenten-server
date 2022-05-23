@@ -93,9 +93,22 @@ const run = async () => {
       res.send({ result, token });
     });
 
+    // GET All Tools in Admin Side
+    app.get("/manageTools", verifyJWT, verifyAdmin, async (req, res) => {
+      const tools = await toolCollection.find().toArray();
+      res.send(tools);
+    });
+
     app.post("/tools", verifyJWT, verifyAdmin, async (req, res) => {
       const tool = req.body;
       const result = await toolCollection.insertOne(tool);
+      res.send(result);
+    });
+
+    app.delete("/manageTools/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await toolCollection.deleteOne(filter);
       res.send(result);
     });
   } finally {
