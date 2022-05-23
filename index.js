@@ -59,6 +59,14 @@ const run = async () => {
       res.send(result);
     });
 
+    // GET Details from a single tool
+    app.get("/tools/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const toolDetails = await toolCollection.findOne(query);
+      res.send(toolDetails);
+    });
+
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
