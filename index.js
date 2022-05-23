@@ -92,6 +92,12 @@ const run = async () => {
       );
       res.send({ result, token });
     });
+
+    app.post("/tools", verifyJWT, verifyAdmin, async (req, res) => {
+      const tool = req.body;
+      const result = await toolCollection.insertOne(tool);
+      res.send(result);
+    });
   } finally {
     // await client.close();
   }
