@@ -37,6 +37,9 @@ const run = async () => {
     await client.connect();
     const toolCollection = client.db("drohnenkomponenten").collection("tools");
     const userCollection = client.db("drohnenkomponenten").collection("users");
+    const orderCollection = client
+      .db("drohnenkomponenten")
+      .collection("orders");
 
     // Verify User as Admin
     const verifyAdmin = async (req, res, next) => {
@@ -60,27 +63,17 @@ const run = async () => {
     });
 
     // GET Details from a single tool
-    app.get("/tools/:id", async (req, res) => {
+    app.get("/tool/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const toolDetails = await toolCollection.findOne(query);
       res.send(toolDetails);
     });
 
-    app.get("/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const user = await userCollection.findOne({ email: email });
-      const isAdmin = user.role === "admin";
-      res.send({ admin: isAdmin });
-    });
-
-    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
-      const updateDoc = {
-        $set: { role: "admin" },
-      };
-      const result = await userCollection.updateOne(filter, updateDoc);
+    // POST An Order
+    app.post("/order", async (req, res) => {
+      const newOrder = req.body;
+      const result = await orderCollection.insertOne(newOrder);
       res.send(result);
     });
 
@@ -99,6 +92,23 @@ const run = async () => {
         { expiresIn: "1d" }
       );
       res.send({ result, token });
+    });
+
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     // GET All Tools in Admin Side
