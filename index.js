@@ -115,6 +115,11 @@ const run = async () => {
       res.send({ result, token });
     });
 
+    app.get("/user", verifyJWT, verifyAdmin, async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
+    });
+
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
