@@ -132,6 +132,12 @@ const run = async () => {
       res.send(result);
     });
 
+    // GET All Orders
+    app.get("/manageOrder", verifyJWT, verifyAdmin, async (req, res) => {
+      const orders = await orderCollection.find().toArray();
+      res.send(orders);
+    });
+
     // GET All Tools in Admin Side
     app.get("/manageTools", verifyJWT, verifyAdmin, async (req, res) => {
       const tools = await toolCollection.find().toArray();
