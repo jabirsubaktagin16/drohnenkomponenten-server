@@ -70,10 +70,31 @@ const run = async () => {
       res.send(toolDetails);
     });
 
+    // GET All Orders by email
+    app.get("/order", verifyJWT, async (req, res) => {
+      const customer = req.query.customer;
+      const decodedEmail = req.decoded.email;
+      if (customer === decodedEmail) {
+        const query = { customer: customer };
+        const orders = await orderCollection.find(query).toArray();
+        return res.send(orders);
+      } else {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
+    });
+
     // POST An Order
     app.post("/order", async (req, res) => {
       const newOrder = req.body;
       const result = await orderCollection.insertOne(newOrder);
+      res.send(result);
+    });
+
+    // Delete an Order
+    app.delete("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      const result = await orderCollection.deleteOne(filter);
       res.send(result);
     });
 
