@@ -74,6 +74,24 @@ const run = async () => {
       res.send(toolDetails);
     });
 
+    app.put("/tool/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const tool = req.body;
+      const updatedDoc = {
+        $set: {
+          name: tool.name,
+          price: tool.price,
+          minimumQuantity: tool.minimumQuantity,
+          availableQuantity: tool.availableQuantity,
+          img: tool.img,
+          description: tool.description,
+        },
+      };
+      const updatedTool = await toolCollection.updateOne(query, updatedDoc);
+      res.send(updatedTool);
+    });
+
     // POST An Item
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const order = req.body;
