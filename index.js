@@ -5,6 +5,7 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const app = express();
 const port = process.env.PORT || 5000;
 require("dotenv").config();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 //Middleware
 app.use(cors());
@@ -40,6 +41,9 @@ const run = async () => {
     const orderCollection = client
       .db("drohnenkomponenten")
       .collection("orders");
+    const paymentCollection = client
+      .db("drohnenkomponenten")
+      .collection("payments");
 
     // Verify User as Admin
     const verifyAdmin = async (req, res, next) => {
@@ -70,6 +74,19 @@ const run = async () => {
       res.send(toolDetails);
     });
 
+    // POST An Item
+    app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+      const order = req.body;
+      const totalPrice = order.totalPrice;
+      const amount = totalPrice * 100;
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      });
+      res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
     // GET All Orders by email
     app.get("/order", verifyJWT, async (req, res) => {
       const customer = req.query.customer;
@@ -83,11 +100,33 @@ const run = async () => {
       }
     });
 
+    app.get("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await orderCollection.findOne(query);
+      res.send(result);
+    });
+
     // POST An Order
     app.post("/order", async (req, res) => {
       const newOrder = req.body;
       const result = await orderCollection.insertOne(newOrder);
       res.send(result);
+    });
+
+    app.patch("/order/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const query = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+      const updatedOrder = await orderCollection.updateOne(query, updatedDoc);
+      const result = await paymentCollection.insertOne(payment);
+      res.send(updatedDoc);
     });
 
     // Delete an Order
