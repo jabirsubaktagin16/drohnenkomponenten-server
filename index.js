@@ -171,6 +171,30 @@ const run = async () => {
       res.send(result);
     });
 
+    app.get("/user/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const query = { email: email };
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    });
+
+    app.put("/user/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const user = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          name: user.name,
+          email: user.email,
+          img: user.img,
+          location: user.location,
+          linkedIn: user.linkedIn,
+        },
+      };
+      const result = await userCollection.updateOne(filter, updatedDoc);
+      res.send(result);
+    });
+
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
