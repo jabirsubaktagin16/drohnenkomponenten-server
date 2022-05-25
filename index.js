@@ -44,6 +44,9 @@ const run = async () => {
     const paymentCollection = client
       .db("drohnenkomponenten")
       .collection("payments");
+    const reviewCollection = client
+      .db("drohnenkomponenten")
+      .collection("reviews");
 
     // Verify User as Admin
     const verifyAdmin = async (req, res, next) => {
@@ -155,6 +158,19 @@ const run = async () => {
       res.send(result);
     });
 
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const cursor = reviewCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.post("/reviews", verifyJWT, async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
@@ -180,7 +196,7 @@ const run = async () => {
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
-      const isAdmin = user.role === "admin";
+      const isAdmin = user?.role === "admin";
       res.send({ admin: isAdmin });
     });
 
