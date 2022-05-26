@@ -61,6 +61,24 @@ const run = async () => {
       }
     };
 
+    // Token Generate and Store User Email in Database
+    app.put("/user/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = req.body;
+      const filter = { email: email };
+      const options = { upsert: true };
+      const updateDoc = {
+        $set: user,
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign(
+        { email: email },
+        process.env.ACCESS_TOKEN_SECRET,
+        { expiresIn: "1d" }
+      );
+      res.send({ result, token });
+    });
+
     // GET All Tools
     app.get("/tools", async (req, res) => {
       const query = {};
@@ -77,6 +95,7 @@ const run = async () => {
       res.send(toolDetails);
     });
 
+    // Update Tool
     app.put("/tool/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
@@ -95,7 +114,7 @@ const run = async () => {
       res.send(updatedTool);
     });
 
-    // POST An Item
+    // Payment
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
       const order = req.body;
       const totalPrice = order.totalPrice;
@@ -178,7 +197,7 @@ const run = async () => {
       res.send(result);
     });
 
-    app.put("/user/:id", verifyJWT, async (req, res) => {
+    app.patch("/user/:id", verifyJWT, async (req, res) => {
       const id = req.params.id;
       const user = req.body;
       const filter = { _id: ObjectId(id) };
@@ -194,23 +213,6 @@ const run = async () => {
       };
       const result = await userCollection.updateOne(filter, updatedDoc);
       res.send(result);
-    });
-
-    app.put("/user/:email", async (req, res) => {
-      const email = req.params.email;
-      const user = req.body;
-      const filter = { email: email };
-      const options = { upsert: true };
-      const updateDoc = {
-        $set: user,
-      };
-      const result = await userCollection.updateOne(filter, updateDoc, options);
-      const token = jwt.sign(
-        { email: email },
-        process.env.ACCESS_TOKEN_SECRET,
-        { expiresIn: "1d" }
-      );
-      res.send({ result, token });
     });
 
     app.get("/user", verifyJWT, verifyAdmin, async (req, res) => {
