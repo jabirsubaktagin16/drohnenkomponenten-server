@@ -186,6 +186,7 @@ const run = async () => {
         $set: {
           name: user.name,
           email: user.email,
+          contactNo: user.contactNo,
           img: user.img,
           location: user.location,
           linkedIn: user.linkedIn,
