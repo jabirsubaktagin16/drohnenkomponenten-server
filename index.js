@@ -8,7 +8,7 @@ require("dotenv").config();
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 //Middleware
-app.use(cors({origin: 'https://drohnenkomponenten.web.app/'}));
+app.use(cors());
 app.use(express.json());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.ykvmt.mongodb.net/?retryWrites=true&w=majority`;
